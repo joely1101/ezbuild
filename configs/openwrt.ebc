@@ -1,0 +1,3 @@
+EZBV_image="joely1101/openwrt-u18-build-env"
+EZBV_name=openwrt-dev
+EZBV_extra_opt=""
