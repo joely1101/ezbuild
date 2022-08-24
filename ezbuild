@@ -325,19 +325,21 @@ cmd_sh()
     fi
     if [ "$2" = "root" ] ;then
         shift 2
+	tmpfile=$(realpath ./tmp)
         if [ "$1" = "" ];then
             error_out "No command"
         fi
         extra_cmd="$@"
-        extra_cmd="$@"
-        cat > ./tmp.sh << EOF
+        cat > $tmpfile << EOF
 $@
 EOF
-        chmod +x ./tmp.sh
+        chmod +x $tmpfile
 
         #echo "login $ins_name as root"
-        docker exec -t $ins_name  $dolinux32 $myshell $extra_cmd
-        rm -f ./tmp.sh
+        docker exec -t $ins_name  $dolinux32 $myshell -c $tmpfile
+	local ret=$?
+        rm -f $tmpfile
+	return $ret
         #eval "docker exec -it $ins_name $dolinux32 $myshell -c '$extra_cmd cd $PWD&&su -s $myshell root'"
     else
         MTNAME=`whoami`
@@ -355,7 +357,9 @@ EOF
         #echo "login $ins_name as $MYNAME"
         #echo "docker exec -t $ins_name $dolinux32 $myshell -c 'cd $PWD&&su -s $myshell -c \"./tmp.sh\" $MYNAME'"
         eval "docker exec -t $ins_name $dolinux32 $myshell -c 'cd $PWD&&su -s $myshell -c \"./tmp.sh\" $MYNAME'"
+	local ret=$?
         rm -f ./tmp.sh
+        return $ret 
     fi
 }
 help_add "sh" "sh osname commands- run shell command in os."
@@ -472,8 +476,8 @@ EOF
     load_config $name
 
     echo "pull docker image $src_docker"
-    docker pull $src_docker || error_out "docker pull $src_docker fail"
-    docker tag $src_docker $EZBV_image || error_out "docker tag fail"
+    #docker pull $src_docker || error_out "docker pull $src_docker fail"
+    #docker tag $src_docker $EZBV_image || error_out "docker tag fail"
 }
 
 help_add "addprofile" "addprofile name docker_image - name src_docker docker_options [ shell ] - create new OS"
@@ -500,3 +504,4 @@ cmd_dev_clean()
 #help_add "dev_clean" "dev clean osname - delete develop os config "
 
 . $src_dir/scripts/cmd.tail.sh
+
