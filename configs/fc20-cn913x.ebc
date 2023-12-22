@@ -1,0 +1,7 @@
+EZBV_dockerfile="dockerfiles/fc20-cn913x/Dockerfile"
+EZBV_image="fedora20.cn913x" 
+EZBV_name=cn913x
+EZBV_extra_opt="--net host --privileged=true"
+EZBV_shell="/usr/bin/bash" 
+EZBV_islinux32=1
+EZBV_HOST_POST_COMMAND="export PATH=/opt/gcc-linaro-7.4.1-2019.02-rc1-x86_64_aarch64-linux-gnu_ilp32/bin:$PATH"

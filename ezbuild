@@ -124,8 +124,17 @@ load_config()
     if [ "$config_loaded" = "1" ];then
 	    return
     fi
+    if [ "$1" = "." ];then
+        #check if local have config
+        if [ ! -f ${PWD}/.ebconfig/config.${SUFFIX} ];then
+            error_out "no config in local"
+        fi
+        EZBV_name="project"
+        local config=${PWD}/.ebconfig/config.${SUFFIX}
+    else
+        local config=${config_dir}/${1}.${SUFFIX}
+    fi
 
-    local config=${config_dir}/${1}.${SUFFIX}
     if [ ! -f $config ];then
 	    error_out "config file not found"
     fi
@@ -140,6 +149,10 @@ load_config()
       lerror=1
     fi
     [ $lerror -eq 1 ] && error_out "config file parameter error"
+    if [ "$EZBV_dockerfile" != "" ];then
+      EZBV_dockerfile=$(realpath ${src_dir}/${EZBV_dockerfile})
+    fi
+    
     config_loaded=1
 
 }
@@ -150,7 +163,17 @@ create_docker_os()
     load_config $pro
 
     if image_not_exist $EZBV_image ;then
+        echo $EZBV_dockerfile
+        if [ "$EZBV_dockerfile" != "" ];then
+            #dockef="$src_dir/$EZBV_dockerfile"
+            dirpath=`dirname $EZBV_dockerfile`
+            [ ! -f "$EZBV_dockerfile" ]&& error_out "$dockef not found"
+            echo "building the docker image to $EZBV_image"
+            #docker build --build-arg user=$(whoami) --build-arg userid=$(id -u) -f $dockef -t $EZBV_image $dirpath
+            docker build -f $EZBV_dockerfile -t $EZBV_image $dirpath
+        else
         docker pull $EZBV_image
+    fi
     fi
     if instance_not_exist $EZBV_name ;then
         VOPTION=""
@@ -240,6 +263,10 @@ cmd_del()
     load_config $pro
     docker stop $EZBV_name &>/dev/null
     docker rm $EZBV_name &>/dev/null
+    if [ "$EZBV_dockerfile" != "" ];then
+        docker tag $EZBV_image ${EZBV_image}-old
+        docker rmi $EZBV_image
+    fi
     echo "Delete $pro finish!!"
 }
 help_add "delete" "del osname - del running os/instance."
